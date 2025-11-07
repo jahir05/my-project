@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: userdir
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: backend }
+  template:
+    metadata:
+      labels: { app: backend }
+    spec:
+      containers:
+        - name: backend
+          image: userdir-backend:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://postgres.userdir.svc.cluster.local:5432/userdir
+            - name: SPRING_DATASOURCE_USERNAME
+              value: userdir
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: POSTGRES_PASSWORD
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: validate
+            - name: SPRING_SQL_INIT_MODE
+              value: "always"
+            - name: SPRING_SQL_INIT_SCHEMA_LOCATIONS
+              value: classpath:schema.sql
+          readinessProbe:
+            httpGet:
+              path: /api/users
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/users
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10

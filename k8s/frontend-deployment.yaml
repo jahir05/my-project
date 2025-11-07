@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: userdir
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: frontend }
+  template:
+    metadata:
+      labels: { app: frontend }
+    spec:
+      containers:
+        - name: frontend
+          image: userdir-frontend:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5173
+          # Vite server config should proxy /api -> http://backend:8080

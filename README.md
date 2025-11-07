@@ -18,3 +18,32 @@ To fix maven related error, you might have to run below commands for windows.
 
 `docker compose up -d --no-deps --build backend`
 
+# using Kubernetes
+
+Build images inside Minikube so no registry is needed
+
+`minikube image build -t userdir-frontend:dev .\frontend`
+
+`minikube image build -t userdir-backend:dev  .\backend`
+
+Now start the application in pods.
+
+`kubectl apply -k .\k8s`
+
+`kubectl get pods -n userdir`
+
+Port-forward Vite dev server
+
+`kubectl -n userdir port-forward svc/frontend 5173:5173`
+
+Now open http://localhost:5173 in a browser.
+
+Port-forward Backend if you want to poke it from browser.
+
+`kubectl -n userdir port-forward svc/backend 8080:8080`
+
+Now open http://localhost:8080/api/users in a browser. You should be able to see all the users from database.
+
+Delete postgres pod to test persistence.
+
+`kubectl delete pod -n userdir -l app=postgres`
