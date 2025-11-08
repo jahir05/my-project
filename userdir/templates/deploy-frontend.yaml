@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "userdir.fullname" . }}-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: {{ include "userdir.fullname" . }}-frontend }
+  template:
+    metadata:
+      labels: { app: {{ include "userdir.fullname" . }}-frontend }
+    spec:
+      containers:
+        - name: frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          ports: [ { containerPort: {{ .Values.frontend.service.port }} } ]
+          # Ensure vite.config.js proxies /api to http://<release>-backend:8080

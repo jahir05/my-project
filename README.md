@@ -47,3 +47,13 @@ Now open http://localhost:8080/api/users in a browser. You should be able to see
 Delete postgres pod to test persistence.
 
 `kubectl delete pod -n userdir -l app=postgres`
+
+# using Helm
+
+`helm install userdir ./userdir -n userdir --create-namespace`
+
+Port-forward Vite dev server
+
+`kubectl -n userdir port-forward svc/userdir-frontend 5173:5173`
+
+Now open http://localhost:5173 in a browser.

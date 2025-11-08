@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "userdir.fullname" . }}-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: {{ include "userdir.fullname" . }}-postgres }
+  template:
+    metadata:
+      labels: { app: {{ include "userdir.fullname" . }}-postgres }
+    spec:
+      containers:
+        - name: postgres
+          image: {{ .Values.postgres.image }}
+          ports: [ { containerPort: {{ .Values.postgres.service.port }} } ]
+          env:
+            - name: POSTGRES_DB
+              value: {{ .Values.postgres.db | quote }}
+            - name: POSTGRES_USER
+              value: {{ .Values.postgres.user | quote }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "userdir.fullname" . }}-db-secret
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: pgdata
+          persistentVolumeClaim:
+            claimName: {{ include "userdir.fullname" . }}-pgdata

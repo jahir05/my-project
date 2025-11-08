@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "userdir.fullname" . }}-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: {{ include "userdir.fullname" . }}-backend }
+  template:
+    metadata:
+      labels: { app: {{ include "userdir.fullname" . }}-backend }
+    spec:
+      containers:
+        - name: backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          ports: [ { containerPort: {{ .Values.backend.service.port }} } ]
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://{{ include "userdir.fullname" . }}-postgres:{{ .Values.postgres.service.port }}/{{ .Values.postgres.db }}"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: {{ .Values.postgres.user | quote }}
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "userdir.fullname" . }}-db-secret
+                  key: POSTGRES_PASSWORD
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: {{ .Values.backend.env.spring.ddlAuto | quote }}
+            - name: SPRING_SQL_INIT_MODE
+              value: {{ .Values.backend.env.spring.sqlInitMode | quote }}
+            - name: SPRING_SQL_INIT_SCHEMA_LOCATIONS
+              value: {{ .Values.backend.env.spring.sqlInitSchemaLocations | quote }}
+          {{- if .Values.backend.probes.enabled }}
+          readinessProbe:
+            httpGet: { path: {{ .Values.backend.probes.path | quote }}, port: {{ .Values.backend.service.port }} }
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: {{ .Values.backend.probes.path | quote }}, port: {{ .Values.backend.service.port }} }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          {{- end }}

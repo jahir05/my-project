@@ -1,0 +1,41 @@
+# Namespace is set by Helm via --namespace; don't hardcode here.
+
+postgres:
+  image: postgres:16
+  db: userdir
+  user: userdir
+  password: userdir              # for demo; use helm secrets or external secret in prod
+  storageSize: 1Gi
+  service:
+    port: 5432
+
+backend:
+  image:
+    repository: userdir-backend
+    tag: dev
+    pullPolicy: IfNotPresent
+  service:
+    port: 8080
+    type: ClusterIP
+  env:
+    spring:
+      ddlAuto: validate
+      sqlInitMode: "always"
+      sqlInitSchemaLocations: "classpath:schema.sql"
+  probes:
+    enabled: true
+    path: /api/users
+
+frontend:
+  # Dev: Vite server in a Node container (port 5173)
+  image:
+    repository: userdir-frontend
+    tag: dev
+    pullPolicy: IfNotPresent
+  service:
+    port: 5173
+    type: ClusterIP  # use port-forward or set NodePort if you want external access without Ingress
+
+ingress:
+  enabled: false
+  host: userdir.local
