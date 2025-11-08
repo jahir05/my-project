@@ -1,3 +1,4 @@
+This is a simple full stack application for testing different types of deployments. In browser, it shows an UI to take name and email address. It lists whatever is in current database. It also allows each entry to be edited or deleted.
 # Build
 
 `docker compose build`
